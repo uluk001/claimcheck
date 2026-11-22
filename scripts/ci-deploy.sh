@@ -39,11 +39,18 @@ else
   target=(--demo-site)
 fi
 
-for product in jira confluence; do
-  if ! forge install "${target[@]}" --product "$product" -e "$FORGE_ENV" --upgrade --confirm-scopes --non-interactive; then
-    forge install "${target[@]}" --product "$product" -e "$FORGE_ENV" --confirm-scopes --non-interactive || \
-      echo "::warning::Could not install in $product"
-  fi
-done
+install_into() {
+  local product="$1"
+  forge install "${target[@]}" --product "$product" -e "$FORGE_ENV" --upgrade --confirm-scopes --non-interactive 2>/dev/null && return 0
+  forge install "${target[@]}" --product "$product" -e "$FORGE_ENV" --confirm-scopes --non-interactive
+}
 
-forge install list -e "$FORGE_ENV" || true
+# Jira is the required app, so it has to be installed before Confluence.
+if install_into jira; then
+  install_into confluence || echo "::warning::Could not install in Confluence"
+else
+  echo "::error::Could not install in Jira. If the demo site is still being provisioned, run the workflow again in a few minutes."
+  exit 1
+fi
+
+forge install list || true
