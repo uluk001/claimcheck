@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+# Answers the interactive Developer Space prompts of `forge register` in CI.
+set timeout 300
+log_user 1
+spawn npx --no-install forge register "Claim Check" --accept-terms
+expect {
+  "Enter a name for your Developer Space:" { send "Claim Check\r"; exp_continue }
+  "Select or create a Developer Space:" { send "\r"; exp_continue }
+  "Do you want to continue?" { send "y\r"; exp_continue }
+  "Registered Claim Check" { exp_continue }
+  timeout { puts "\nforge register timed out"; exit 1 }
+  eof
+}
+lassign [wait] pid spawnid os_error value
+exit $value

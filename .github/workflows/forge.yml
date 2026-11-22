@@ -37,6 +37,7 @@ jobs:
       FORGE_EMAIL: ${{ secrets.FORGE_EMAIL }}
       FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
       FORGE_SITE: ${{ vars.FORGE_SITE }}
+      FORGE_DEVELOPER_SPACE_ID: ${{ vars.FORGE_DEVELOPER_SPACE_ID }}
       FORGE_ENV: ${{ inputs.environment || 'development' }}
     steps:
       - uses: actions/checkout@v5

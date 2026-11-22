@@ -10,7 +10,17 @@ forge whoami
 
 if grep -q 'app/00000000-0000-0000-0000-000000000000' manifest.yml; then
   echo "Registering a new Forge app"
-  forge register "Claim Check" --accept-terms
+  if [ -n "${FORGE_DEVELOPER_SPACE_ID:-}" ]; then
+    forge register "Claim Check" --accept-terms --developer-space-id "$FORGE_DEVELOPER_SPACE_ID"
+  else
+    # forge register asks for a Developer Space name, which needs a terminal.
+    command -v expect >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq expect >/dev/null)
+    expect scripts/register.exp
+  fi
+  if grep -q 'app/00000000-0000-0000-0000-000000000000' manifest.yml; then
+    echo "::error::App registration did not update manifest.yml"
+    exit 1
+  fi
   git config user.name "${GIT_AUTHOR_NAME:-Ulukman}"
   git config user.email "${GIT_AUTHOR_EMAIL:-96724618+uluk001@users.noreply.github.com}"
   git add manifest.yml
