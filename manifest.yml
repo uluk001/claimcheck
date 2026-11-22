@@ -16,8 +16,8 @@ modules:
       title: Claim Check setup
       icon: resource:static;claim-check.svg
   rovo:agent:
-    - key: claims-assessor
-      name: Claims Assessor
+    - key: claim-review-assistant
+      name: Claim Review Assistant
       description: Reviews insurance claim records in Jira against the policy wording in Confluence and quotes the relevant clauses.
       icon: resource:static;claims-assessor.svg
       prompt: resource:prompts;claims-agent.md

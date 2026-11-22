@@ -208,7 +208,7 @@ function App() {
 
       <Text>
         <Em>
-          Tip: open a claim and choose <Strong>Ask Claims Assessor</Strong> to talk to the Rovo agent, which uses the same checks and can post
+          Tip: open a claim and choose <Strong>Ask the Claim Review Assistant</Strong> to talk to the Rovo agent, which uses the same checks and can post
           the assessment or request missing documents for you.
         </Em>
       </Text>

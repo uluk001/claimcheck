@@ -29,7 +29,7 @@ interface AssessmentResult {
   warnings: string[];
 }
 
-const AGENT = { name: 'Claims Assessor', key: 'claims-assessor' };
+const AGENT = { name: 'Claim Review Assistant', key: 'claim-review-assistant' };
 
 const VERDICT_APPEARANCE: Record<Assessment['verdict'], 'success' | 'moved' | 'removed' | 'default'> = {
   clear: 'success',
@@ -237,7 +237,7 @@ function App() {
 
       <ButtonGroup>
         <Button appearance="primary" onClick={askAgent}>
-          Ask Claims Assessor
+          Ask the Claim Review Assistant
         </Button>
         <LoadingButton isLoading={busy === 'post'} onClick={post}>
           Post assessment
