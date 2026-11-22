@@ -5,7 +5,7 @@
   "scripts": {
     "test": "node --import ./tests/ts-resolve.mjs --test tests/*.test.ts",
     "test:integration": "esbuild tests/integration.ts --bundle --platform=node --outfile=.build/integration.cjs --alias:@forge/api=./tests/mocks/forge-api.ts --alias:@forge/kvs=./tests/mocks/forge-kvs.ts --log-level=warning && node .build/integration.cjs",
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "validate:manifest": "node scripts/validate-manifest.cjs",
     "check": "npm run typecheck && npm test && npm run test:integration && npm run validate:manifest"
   },
@@ -15,7 +15,7 @@
     "@forge/manifest": "^13.9.0",
     "@types/node": "^26.6.6",
     "esbuild": "^0.28.2",
-    "typescript": "^7.0.2"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@forge/api": "^8.5.0",
