@@ -1,0 +1,29 @@
+{
+  "name": "claim-check",
+  "version": "1.0.0",
+  "description": "Forge app for Jira and Confluence that checks insurance claims against the policy wording, with a Rovo agent.",
+  "scripts": {
+    "test": "node --import ./tests/ts-resolve.mjs --test tests/*.test.ts",
+    "test:integration": "esbuild tests/integration.ts --bundle --platform=node --outfile=.build/integration.cjs --alias:@forge/api=./tests/mocks/forge-api.ts --alias:@forge/kvs=./tests/mocks/forge-kvs.ts --log-level=warning && node .build/integration.cjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "validate:manifest": "node scripts/validate-manifest.cjs",
+    "check": "npm run typecheck && npm test && npm run test:integration && npm run validate:manifest"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@forge/cli": "^15.1.0",
+    "@forge/manifest": "^13.9.0",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@forge/api": "^8.5.0",
+    "@forge/bridge": "^7.3.0",
+    "@forge/kvs": "^2.1.2",
+    "@forge/react": "^12.5.0",
+    "@forge/resolver": "^2.0.2",
+    "react": "^18.3.1"
+  },
+  "private": true
+}
