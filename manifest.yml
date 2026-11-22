@@ -18,14 +18,13 @@ modules:
   rovo:agent:
     - key: claims-assessor
       name: Claims Assessor
-      description: Checks insurance claims in Jira against the policy wording in
-        Confluence, quotes the clauses that matter and prepares the next step.
+      description: Reviews insurance claim records in Jira against the policy wording in Confluence and quotes the relevant clauses.
       icon: resource:static;claims-assessor.svg
       prompt: resource:prompts;claims-agent.md
       conversationStarters:
         - Assess this claim against the policy wording
         - Which documents are missing for this claim?
-        - Is there an exclusion that could apply here?
+        - Which exclusions in the policy wording mention this incident?
         - Draft a message to the customer asking for the missing documents
       actions:
         - assess-claim
