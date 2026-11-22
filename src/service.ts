@@ -5,7 +5,7 @@ import { parsePolicyHtml, parsePolicyText, textToStorage } from './engine/policy
 import type { Assessment, Check, ClaimFacts, PolicyWording } from './engine/types';
 import { formatMoney } from './engine/values';
 import { createPage, getPage, listSpaces, pageIdFrom, type SpaceSummary } from './atlassian/confluence';
-import { addComment, addLabel, createIssue, getIssue, listProjects, siteBaseUrl, userHasIssuePermission, type IssueData, type ProjectSummary } from './atlassian/jira';
+import { addComment, addLabel, createIssue, currentUserCan, getIssue, listProjects, siteBaseUrl, type IssueData, type ProjectSummary } from './atlassian/jira';
 import { SAMPLE_CLAIMS } from './samples/claims';
 import { SAMPLE_POLICIES, samplePolicyFor, type SamplePolicy } from './samples/policies';
 
@@ -86,11 +86,21 @@ export interface AssessmentResult {
   warnings: string[];
 }
 
-export async function assessIssue(issueKey: string, accountId: string | undefined, permission = 'BROWSE_PROJECTS'): Promise<AssessmentResult> {
-  const issue = await getIssue(issueKey);
-  if (!(await userHasIssuePermission(accountId, issue.id, permission))) {
-    throw new UserFacingError(`You do not have permission to ${permission === 'ADD_COMMENTS' ? 'comment on' : 'view'} ${issueKey}.`);
+export interface Access {
+  /** True when the issue key comes from the Jira context the user is viewing, so Jira has already checked access. */
+  trusted: boolean;
+}
+
+async function ensureCanView(issueKey: string, access: Access) {
+  if (access.trusted) return;
+  if (!(await currentUserCan(issueKey, 'BROWSE_PROJECTS'))) {
+    throw new UserFacingError(`You do not have permission to view ${issueKey}.`);
   }
+}
+
+export async function assessIssue(issueKey: string, access: Access): Promise<AssessmentResult> {
+  await ensureCanView(issueKey, access);
+  const issue = await getIssue(issueKey);
   const facts = parseClaim({
     issueKey: issue.key,
     summary: issue.summary,
@@ -165,14 +175,14 @@ export function documentRequestComment(assessment: Assessment, message?: string)
   };
 }
 
-export async function postAssessment(issueKey: string, accountId: string | undefined, note?: string) {
-  const result = await assessIssue(issueKey, accountId, 'ADD_COMMENTS');
+export async function postAssessment(issueKey: string, access: Access, note?: string) {
+  const result = await assessIssue(issueKey, access);
   const url = await addComment(result.issue.key, assessmentComment(result.assessment, note));
   return { url, verdict: result.assessment.verdictLabel };
 }
 
-export async function requestMissingDocuments(issueKey: string, accountId: string | undefined, message?: string) {
-  const result = await assessIssue(issueKey, accountId, 'ADD_COMMENTS');
+export async function requestMissingDocuments(issueKey: string, access: Access, message?: string) {
+  const result = await assessIssue(issueKey, access);
   if (result.assessment.missingDocuments.length === 0) {
     return { url: null, requested: [] as string[], note: 'No documents are missing, so nothing was requested.' };
   }
@@ -292,11 +302,11 @@ export async function linkPolicyPage(productId: string, pageRef: string) {
   return { title: page.title, url: page.url, clauses: wording.clauses.length };
 }
 
-export async function policyClauses(issueKey: string | null, product: string | null, topic: string | null, accountId: string | undefined) {
+export async function policyClauses(issueKey: string | null, product: string | null, topic: string | null, access: Access) {
   let wording: PolicyWording;
   if (issueKey) {
+    await ensureCanView(issueKey, access);
     const issue = await getIssue(issueKey);
-    if (!(await userHasIssuePermission(accountId, issue.id, 'BROWSE_PROJECTS'))) throw new UserFacingError(`You do not have permission to view ${issueKey}.`);
     const facts = parseClaim({ issueKey, description: issue.description, created: issue.created, attachments: issue.attachments });
     wording = (await resolveWording(facts, issue)).wording;
   } else {

@@ -15,9 +15,9 @@ async function jira(path: string, init: any = {}) {
   const body = init.body ? JSON.parse(init.body) : undefined;
   calls.push({ product: 'jira', method, path, body });
   if (path === '/rest/api/3/serverInfo') return respond(200, { baseUrl: 'https://demo.atlassian.net' });
-  if (path === '/rest/api/3/permissions/check') {
-    const issues = state.allow ? body.projectPermissions[0].issues : [];
-    return respond(200, { projectPermissions: [{ permission: body.projectPermissions[0].permissions[0], issues }] });
+  if (path.startsWith('/rest/api/3/mypermissions')) {
+    const permission = new URL(path, 'https://x').searchParams.get('permissions') as string;
+    return respond(200, { permissions: { [permission]: { havePermission: state.allow } } });
   }
   const remote = path.match(/^\/rest\/api\/3\/issue\/([^/?]+)\/remotelink$/);
   if (remote) return respond(200, state.jira[decodeURIComponent(remote[1])]?.remoteLinks ?? []);
@@ -43,6 +43,17 @@ async function confluence(path: string, init: any = {}) {
   return respond(404, { path });
 }
 
-const methods = { requestJira: jira, requestConfluence: confluence };
-const api = { asApp: () => methods, asUser: () => methods };
+export class NeedsAuthenticationError extends Error {}
+export const isForgePlatformError = (error: unknown) => error instanceof NeedsAuthenticationError;
+
+function as(actor: string) {
+  return {
+    requestJira: (path: string, init: any = {}) => {
+      calls.push({ product: 'actor', method: actor, path });
+      return jira(path, init);
+    },
+    requestConfluence: confluence,
+  };
+}
+const api = { asApp: () => as('app'), asUser: () => as('user') };
 export default api;

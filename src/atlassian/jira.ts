@@ -16,8 +16,11 @@ export interface IssueData {
   remoteLinks: string[];
 }
 
-async function jiraJson<T>(path: ReturnType<typeof route>, init?: RequestInit): Promise<T> {
-  const res = await api.asApp().requestJira(path, {
+type Actor = 'app' | 'user';
+
+async function jiraJson<T>(path: ReturnType<typeof route>, init?: RequestInit, actor: Actor = 'app'): Promise<T> {
+  const client = actor === 'user' ? api.asUser() : api.asApp();
+  const res = await client.requestJira(path, {
     ...init,
     headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
   } as any);
@@ -65,35 +68,36 @@ export async function getIssue(issueKey: string): Promise<IssueData> {
 }
 
 /**
- * Checks a project permission for the user who triggered the request.
- * The app reads data as itself, so this keeps users from seeing claims they could not open in Jira.
+ * Checks a permission for the user who triggered the request, using the user's own credentials.
+ * The app reads data as itself, so this keeps users from reaching claims they could not open in Jira.
  */
-export async function userHasIssuePermission(accountId: string | undefined, issueId: string, permission: string): Promise<boolean> {
-  if (!accountId) return false;
-  const result = await jiraJson<{ projectPermissions?: Array<{ permission: string; issues?: number[] }> }>(
-    route`/rest/api/3/permissions/check`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ accountId, projectPermissions: [{ permissions: [permission], issues: [Number(issueId)] }] }),
-    },
+export async function currentUserCan(issueKey: string, permission: string): Promise<boolean> {
+  const result = await jiraJson<{ permissions?: Record<string, { havePermission?: boolean }> }>(
+    route`/rest/api/3/mypermissions?issueKey=${issueKey}&permissions=${permission}`,
+    undefined,
+    'user',
   );
-  return (result.projectPermissions ?? []).some((p) => p.permission === permission && (p.issues ?? []).includes(Number(issueId)));
+  return result.permissions?.[permission]?.havePermission === true;
 }
 
+/** Posts a comment as the current user, so Jira enforces their permission to comment. */
 export async function addComment(issueKey: string, body: unknown): Promise<string> {
-  const comment = await jiraJson<{ id: string }>(route`/rest/api/3/issue/${issueKey}/comment`, {
-    method: 'POST',
-    body: JSON.stringify({ body }),
-  });
+  const comment = await jiraJson<{ id: string }>(
+    route`/rest/api/3/issue/${issueKey}/comment`,
+    { method: 'POST', body: JSON.stringify({ body }) },
+    'user',
+  );
   const base = await siteBaseUrl();
   return `${base}/browse/${issueKey}?focusedCommentId=${comment.id}`;
 }
 
+/** Adds a label as the current user, so Jira enforces their permission to edit the issue. */
 export async function addLabel(issueKey: string, label: string): Promise<void> {
-  await jiraJson(route`/rest/api/3/issue/${issueKey}`, {
-    method: 'PUT',
-    body: JSON.stringify({ update: { labels: [{ add: label }] } }),
-  });
+  await jiraJson(
+    route`/rest/api/3/issue/${issueKey}`,
+    { method: 'PUT', body: JSON.stringify({ update: { labels: [{ add: label }] } }) },
+    'user',
+  );
 }
 
 export interface ProjectSummary {
