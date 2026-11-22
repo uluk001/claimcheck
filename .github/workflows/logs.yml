@@ -1,0 +1,29 @@
+name: Forge logs
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Forge environment
+        type: choice
+        options: [development, production]
+        default: development
+      since:
+        description: How far back, for example 15m or 1h
+        default: 30m
+
+jobs:
+  logs:
+    runs-on: ubuntu-latest
+    env:
+      FORGE_EMAIL: ${{ secrets.FORGE_EMAIL }}
+      FORGE_API_TOKEN: ${{ secrets.FORGE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx forge settings set usage-analytics false
+      - run: npx forge logs -e "${{ inputs.environment }}" --since "${{ inputs.since }}" -n 200
