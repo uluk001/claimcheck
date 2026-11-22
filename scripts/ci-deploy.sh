@@ -30,6 +30,12 @@ fi
 
 forge deploy -e "$FORGE_ENV" --non-interactive
 
+if [ "$FORGE_ENV" = "production" ]; then
+  # Production is installed through the app's sharing link, not on the test site.
+  echo "Deployed to production. Install it with the sharing link from the developer console."
+  exit 0
+fi
+
 target=()
 if [ -n "${FORGE_SITE:-}" ]; then
   target=(--site "$FORGE_SITE")
