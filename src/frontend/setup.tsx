@@ -103,7 +103,6 @@ function App() {
   return (
     <Stack space="space.300">
       <Stack space="space.100">
-        <Heading size="large">Claim Check setup</Heading>
         <Text>
           Claim Check reads the policy wording in Confluence and checks each insurance claim in Jira against it: policy period,
           notification deadline, exclusions, limits, deductible and required documents, with every finding quoted from the wording.

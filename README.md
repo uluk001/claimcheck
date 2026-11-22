@@ -1,8 +1,8 @@
 # Claim Check
 
 Claim Check is a Forge app for insurance teams that handle claims in Jira and keep policy wordings in Confluence. It reads the
-policy wording, checks each claim against it and quotes the exact clause behind every finding. A Rovo agent, **Claims
-Assessor**, uses the same checks to explain a claim, draft customer messages, post the assessment and request missing
+policy wording, checks each claim against it and quotes the exact clause behind every finding. A Rovo agent, the **Claim Review
+Assistant**, uses the same checks to explain a claim, draft customer messages, post the assessment and request missing
 documents.
 
 The coverage decision always stays with the claims handler. Claim Check does the reading.
@@ -24,7 +24,7 @@ Every quote is copied from the wording, so it can be checked against the Conflue
 ## Where it appears
 
 - **Jira issue panel "Claim Check"**: verdict, checks with clause quotes, missing documents, indicative payable amount, and buttons to post the assessment, request missing documents or open the agent.
-- **Rovo agent "Claims Assessor"** with four actions: `assess-claim`, `get-policy-clauses`, `post-assessment`, `request-missing-documents`.
+- **Rovo agent "Claim Review Assistant"** with four actions: `assess-claim`, `get-policy-clauses`, `post-assessment`, `request-missing-documents`.
 - **Jira global page "Claim Check setup"**: creates sample policy pages in Confluence and sample claims in Jira, and links your own Confluence wording to a product.
 
 ## Claim format

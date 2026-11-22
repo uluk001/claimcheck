@@ -48,8 +48,21 @@ export interface SpaceSummary {
 }
 
 export async function listSpaces(): Promise<SpaceSummary[]> {
-  const page = await confluenceJson<{ results: any[] }>(route`/wiki/api/v2/spaces?limit=50&type=global&status=current`);
-  return page.results.map((s) => ({ id: String(s.id), key: s.key, name: s.name }));
+  const spaces: SpaceSummary[] = [];
+  let cursor: string | null = null;
+  for (let pageNo = 0; pageNo < 4; pageNo += 1) {
+    const page: { results: any[]; _links?: { next?: string } } = cursor
+      ? await confluenceJson(route`/wiki/api/v2/spaces?limit=250&status=current&sort=name&cursor=${cursor}`)
+      : await confluenceJson(route`/wiki/api/v2/spaces?limit=250&status=current&sort=name`);
+    for (const s of page.results) {
+      if (s.type === 'personal') continue;
+      spaces.push({ id: String(s.id), key: s.key, name: s.name });
+    }
+    const next = page._links?.next;
+    cursor = next ? new URL(next, 'https://x').searchParams.get('cursor') : null;
+    if (!cursor) break;
+  }
+  return spaces;
 }
 
 export async function findPageByTitle(spaceId: string, title: string): Promise<string | null> {
