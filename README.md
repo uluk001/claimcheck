@@ -49,10 +49,14 @@ built-in sample wording for motor, home and travel.
 
 ## Security
 
-The app reads Jira and Confluence as the app, so every resolver and Rovo action first checks the requesting user's Jira
-permission. The issue the user is viewing is trusted because Jira already checked access; any other issue a Rovo action asks for is checked with the user's own `mypermissions`. Comments and labels are written as the user, so Jira enforces their permission to comment and edit. Issue keys
-from the agent are validated and fall back to the issue in context. No data leaves Atlassian: there is no egress and no
-external model; the agent runs on Rovo.
+The app reads Jira and Confluence as the app, so it never lets a user reach a claim they could not open in Jira:
+
+- The issue the user is viewing (panel or Rovo context) is trusted, because Jira has already checked access.
+- Any other issue a Rovo action asks for is checked with the user's own credentials (`mypermissions`, `BROWSE_PROJECTS`).
+- Comments and labels are written as the user, so Jira enforces their permission to comment and edit.
+- Issue keys from the agent are validated and fall back to the issue in context.
+
+No data leaves Atlassian: there is no egress and no external model; the agent runs on Rovo.
 
 ## Develop
 
